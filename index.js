@@ -77,6 +77,11 @@ async function run() {
             res.send(result);
         });
 
+        // Product related api
+        app.get('/products', async (req, res) => {
+            const products = await client.db("twistBuy").collection("products").find({}).toArray();
+            res.send(products);
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
