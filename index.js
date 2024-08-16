@@ -82,27 +82,43 @@ async function run() {
         // Product related API with pagination
         app.get('/products', async (req, res) => {
             try {
-                const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-                const limit = parseInt(req.query.limit) || 10; // Default to 10 products per page if not provided
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 10;
                 const skip = (page - 1) * limit;
 
+                const filters = {};
+                if (req.query.category) {
+                    filters.category = req.query.category;
+                }
+                if (req.query.brand) {
+                    filters.brand = req.query.brand;
+                }
+                if (req.query.minPrice && req.query.maxPrice) {
+                    filters.price = {
+                        $gte: parseFloat(req.query.minPrice),
+                        $lte: parseFloat(req.query.maxPrice),
+                    };
+                }
 
-                const totalProducts = await productsCollection.countDocuments(); // Get total number of products
-                const products = await productsCollection.find({})
+                const productsCollection = client.db("twistBuy").collection("products");
+
+                const totalFilteredProducts = await productsCollection.countDocuments(filters); // Count the filtered products
+                const filteredProducts = await productsCollection.find(filters)
                     .skip(skip)
                     .limit(limit)
                     .toArray();
 
                 res.send({
-                    products,
-                    totalProducts,
-                    totalPages: Math.ceil(totalProducts / limit),
-                    currentPage: page
+                    products: filteredProducts,
+                    totalProducts: totalFilteredProducts,
+                    totalPages: Math.ceil(totalFilteredProducts / limit),
+                    currentPage: page,
                 });
             } catch (error) {
                 res.status(500).send({ message: 'Failed to fetch products', error });
             }
         });
+
 
 
         // Send a ping to confirm a successful connection
