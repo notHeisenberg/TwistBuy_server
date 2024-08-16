@@ -87,12 +87,23 @@ async function run() {
                 const skip = (page - 1) * limit;
 
                 const filters = {};
+
+                // Apply search filter
+                if (req.query.search) {
+                    filters.name = { $regex: req.query.search, $options: 'i' };
+                }
+
+                // Apply category filter
                 if (req.query.category) {
                     filters.category = req.query.category;
                 }
+
+                // Apply brand filter
                 if (req.query.brand) {
                     filters.brand = req.query.brand;
                 }
+
+                // Apply price range filter
                 if (req.query.minPrice && req.query.maxPrice) {
                     filters.price = {
                         $gte: parseFloat(req.query.minPrice),
@@ -102,7 +113,10 @@ async function run() {
 
                 const productsCollection = client.db("twistBuy").collection("products");
 
-                const totalFilteredProducts = await productsCollection.countDocuments(filters); // Count the filtered products
+                // Count the total number of filtered products
+                const totalFilteredProducts = await productsCollection.countDocuments(filters);
+
+                // Get the filtered products and apply pagination
                 const filteredProducts = await productsCollection.find(filters)
                     .skip(skip)
                     .limit(limit)
@@ -118,6 +132,7 @@ async function run() {
                 res.status(500).send({ message: 'Failed to fetch products', error });
             }
         });
+
 
 
 
