@@ -37,6 +37,8 @@ async function run() {
         await client.connect();
 
         const userCollection = client.db("twistBuy").collection("users")
+        const productsCollection = client.db("twistBuy").collection("products");
+
 
 
         // middlewares 
@@ -77,11 +79,31 @@ async function run() {
             res.send(result);
         });
 
-        // Product related api
+        // Product related API with pagination
         app.get('/products', async (req, res) => {
-            const products = await client.db("twistBuy").collection("products").find({}).toArray();
-            res.send(products);
+            try {
+                const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+                const limit = parseInt(req.query.limit) || 10; // Default to 10 products per page if not provided
+                const skip = (page - 1) * limit;
+
+
+                const totalProducts = await productsCollection.countDocuments(); // Get total number of products
+                const products = await productsCollection.find({})
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+
+                res.send({
+                    products,
+                    totalProducts,
+                    totalPages: Math.ceil(totalProducts / limit),
+                    currentPage: page
+                });
+            } catch (error) {
+                res.status(500).send({ message: 'Failed to fetch products', error });
+            }
         });
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
