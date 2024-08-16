@@ -7,17 +7,18 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 3000;
 
-// middleware
-app.use(
-    cors({
-        origin: [
-            "http://localhost:5173",
-            // "https://twist-buy-b2a12.web.app/"
-        ],
-        credentials: true,
 
-    })
-);
+const allowedOrigins
+    = [
+        'https://twist-buy-b2a12.web.app'
+        , 'http://localhost:5173'
+    ];
+
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
+
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pgsiu4c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
