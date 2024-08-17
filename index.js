@@ -135,7 +135,15 @@ async function run() {
         });
 
 
-
+        app.get('/featured', async (req, res) => {
+            try {
+                const featuredProducts = await productsCollection.find({ isFeatured: true }).toArray();
+                res.send({ products: featuredProducts });
+            } catch (error) {
+                res.status(500).send({ error: 'Failed to fetch featured products' });
+            }
+        });
+        
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
